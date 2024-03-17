@@ -13,7 +13,7 @@ npm install cors express node-fetch dotenv
    ```
    DISCORD_BOT_TOKEN=your_discord_bot_token_here
    ```
-5. Start the server by running `npm start`.
+5. Start the server by running `cd api` first then `node index`.
 
 ## Usage
 
