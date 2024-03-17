@@ -6,11 +6,14 @@ This Node.js application provides an API for fetching Discord user avatars and b
 
 1. Clone this repository.
 2. Install dependencies by running `npm install`.
-3. Create a `.env` file in the root directory and add your Discord bot token:
+```
+npm install cors express node-fetch dotenv
+```
+4. Create a `.env` file in the root directory and add your Discord bot token:
    ```
    DISCORD_BOT_TOKEN=your_discord_bot_token_here
    ```
-4. Start the server by running `npm start`.
+5. Start the server by running `npm start`.
 
 ## Usage
 
