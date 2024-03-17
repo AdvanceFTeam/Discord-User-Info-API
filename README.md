@@ -1,6 +1,6 @@
 # Discord Avatar and Background API
 
-This Node.js application provides an API for fetching Discord user avatars and backgrounds.
+This Node.js application provides an API for fetching Discord user avatars(pfp).
 
 ## Installation
 
