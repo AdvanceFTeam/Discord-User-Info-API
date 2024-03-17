@@ -40,8 +40,15 @@ const app = express();
 app.use(cors());
 
 app.get("/api", (req, res) => {
-  res.send("Welcome to the API endpoint!");
+  const endpoints = [
+    { url: "/api", description: "Welcome message and list of endpoints" },
+    { url: "/api/pfp/:userId", description: "Get user avatar URL" },
+    { url: "/api/pfp/:userId/image", description: "Get user avatar image" },
+    { url: "/api/pfp/:userId/smallimage", description: "Get user small avatar image" }
+  ];
+  res.json({ endpoints });
 });
+
 
 app.get("/api/pfp/:userId", async (req, res) => {
   const userId = req.params.userId;
@@ -80,5 +87,5 @@ app.get("/api/pfp/:userId/smallimage", async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`Server is running on port localhost:${PORT}`);
 });
