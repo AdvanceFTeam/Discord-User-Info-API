@@ -46,14 +46,6 @@ This Node.js application provides an API for fetching Discord user avatars and b
   - `size` (optional): Size of the avatar image. Default is 128.
 - **Response:** Redirects to the URL of the avatar image with specified size.
 
-### Get Background URL
-
-- **Endpoint:** `/api/background/:userId`
-- **Method:** GET
-- **Parameters:**
-  - `userId` (required): Discord user ID for which background is to be fetched.
-- **Response:** JSON object containing the background URL.
-
 ## Dependencies
 
 - [express](https://www.npmjs.com/package/express): Fast, unopinionated, minimalist web framework for Node.js.
