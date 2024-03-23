@@ -85,6 +85,18 @@ app.get("/api/pfp/:userId/smallimage", async (req, res) => {
   }
 });
 
+app.get("/api/pfp/:userId/bigimage", async (req, res) => {
+  const userId = req.params.userId;
+  const size = req.query.size || 1024;
+  try {
+    const avatarUrl = await getPfp(userId, size);
+    res.redirect(avatarUrl);
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Failed to fetch user data or avatar" });
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port localhost:${PORT}`);
