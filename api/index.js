@@ -44,8 +44,8 @@ app.get("/api", (req, res) => {
     { url: "/api", description: "Welcome message and list of endpoints" },
     { url: "/api/pfp/:userId", description: "Get user avatar URL" },
     { url: "/api/pfp/:userId/image", description: "Get user avatar image" },
-    { url: "/api/pfp/:userId/smallimage", description: "Get user small avatar image" }
-     { url: "/api/pfp/:userId/bigimage", description: "Get user big avatar image" }
+    { url: "/api/pfp/:userId/smallimage", description: "Get user small avatar image" },
+    { url: "/api/pfp/:userId/bigimage", description: "Get user big avatar image" }
   ];
   res.json({ endpoints });
 });
