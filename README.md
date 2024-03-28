@@ -49,6 +49,15 @@ npm install cors express node-fetch dotenv
   - `size` (optional): Size of the avatar image. Default is 128.
 - **Response:** Redirects to the URL of the avatar image with specified size.
 
+### Get Big Avatar Image
+
+- **Endpoint:** `/api/pfp/:userId/bigimage`
+- **Method:** GET
+- **Parameters:**
+  - `userId` (required): Discord user ID for which avatar is to be fetched.
+  - `size` (optional): Size of the avatar image. Default is 1024.
+- **Response:** Redirects to the URL of the avatar image with specified size.
+
 ## Dependencies
 
 - [express](https://www.npmjs.com/package/express): Fast, unopinionated, minimalist web framework for Node.js.
