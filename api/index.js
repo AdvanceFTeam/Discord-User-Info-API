@@ -55,10 +55,10 @@ app.get("/api", (req, res) => {
   const endpoints = [
     { url: "/api", description: "Welcome message and list of endpoints" },
     { url: "/api/:userId", description: "Get user avatar URL, username, display name, and ID" },
-    { url: "/api/:userId/image", description: "Get user avatar image" },
-    { url: "/api/:userId/smallimage", description: "Get user small avatar image" },
-    { url: "/api/:userId/bigimage", description: "Get user big avatar image" },
-    { url: "/api/:userId/superbigimage", description: "Get user big avatar image" }
+    { url: "/api/pfp/:userId/image", description: "Get user avatar image" },
+    { url: "/api/pfp/:userId/smallimage", description: "Get user small avatar image" },
+    { url: "/api/pfp/:userId/bigimage", description: "Get user big avatar image" },
+    { url: "/api/pfp/:userId/superbigimage", description: "Get user big avatar image" }
   ];
   res.json({ endpoints });
 });
@@ -74,7 +74,7 @@ app.get("/api/:userId", async (req, res) => {
   }
 });
 
-app.get("/api/:userId/image", async (req, res) => {
+app.get("/api/pfp/:userId/image", async (req, res) => {
   const userId = req.params.userId;
   const size = req.query.size || 512;
   try {
@@ -86,7 +86,7 @@ app.get("/api/:userId/image", async (req, res) => {
   }
 });
 
-app.get("/api/:userId/smallimage", async (req, res) => {
+app.get("/api/pfp/:userId/smallimage", async (req, res) => {
   const userId = req.params.userId;
   const size = req.query.size || 128;
   try {
@@ -98,7 +98,7 @@ app.get("/api/:userId/smallimage", async (req, res) => {
   }
 });
 
-app.get("/api/:userId/bigimage", async (req, res) => {
+app.get("/api/pfp/:userId/bigimage", async (req, res) => {
   const userId = req.params.userId;
   const size = req.query.size || 1024;
   try {
@@ -110,7 +110,7 @@ app.get("/api/:userId/bigimage", async (req, res) => {
   }
 });
 
-app.get("/api/:userId/superbigimage", async (req, res) => {
+app.get("/api/pfp/:userId/superbigimage", async (req, res) => {
   const userId = req.params.userId;
   const size = req.query.size || 4096;
   try {
