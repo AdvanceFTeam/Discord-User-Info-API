@@ -45,7 +45,8 @@ app.get("/api", (req, res) => {
     { url: "/api/pfp/:userId", description: "Get user avatar URL" },
     { url: "/api/pfp/:userId/image", description: "Get user avatar image" },
     { url: "/api/pfp/:userId/smallimage", description: "Get user small avatar image" },
-    { url: "/api/pfp/:userId/bigimage", description: "Get user big avatar image" }
+    { url: "/api/pfp/:userId/bigimage", description: "Get user big avatar image" },
+    { url: "/api/pfp/:userId/superbigimage", description: "Get user big avatar image" }
   ];
   res.json({ endpoints });
 });
@@ -89,6 +90,18 @@ app.get("/api/pfp/:userId/smallimage", async (req, res) => {
 app.get("/api/pfp/:userId/bigimage", async (req, res) => {
   const userId = req.params.userId;
   const size = req.query.size || 1024;
+  try {
+    const avatarUrl = await getPfp(userId, size);
+    res.redirect(avatarUrl);
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Failed to fetch user data or avatar" });
+  }
+});
+
+app.get("/api/pfp/:userId/superbigimage", async (req, res) => {
+  const userId = req.params.userId;
+  const size = req.query.size || 4096;
   try {
     const avatarUrl = await getPfp(userId, size);
     res.redirect(avatarUrl);
