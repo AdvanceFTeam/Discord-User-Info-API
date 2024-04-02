@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 
-async function getPfp(userId, size = 128) {
+async function getUserData(userId) {
   const fetch = (await import("node-fetch")).default;
   const DISCORD_API_BASE_URL = "https://discord.com/api";
   const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
@@ -18,17 +18,29 @@ async function getPfp(userId, size = 128) {
       throw new Error("Failed to fetch user data from Discord API");
     }
 
-    const userData = await response.json();
+    return await response.json();
+  } catch (error) {
+    console.error("Error:", error);
+    throw new Error("Failed to fetch user data");
+  }
+}
+
+async function getInfo(userId) {
+  try {
+    const userData = await getUserData(userId);
     let avatarUrl;
     if (userData.avatar.startsWith("a_")) {
-      // GIF avatar
-      avatarUrl = `https://cdn.discordapp.com/avatars/${userId}/${userData.avatar}.gif?size=${size}`;
+      avatarUrl = `https://cdn.discordapp.com/avatars/${userId}/${userData.avatar}.gif?size=128`;
     } else {
-      // PNG/JPG avatar
-      avatarUrl = `https://cdn.discordapp.com/avatars/${userId}/${userData.avatar}.png?size=${size}`;
+      avatarUrl = `https://cdn.discordapp.com/avatars/${userId}/${userData.avatar}.png?size=128`;
     }
 
-    return avatarUrl;
+    return {
+      id: userData.id,
+      username: userData.username,
+      display_name: userData.global_name,
+      avatarUrl: avatarUrl
+    };
   } catch (error) {
     console.error("Error:", error);
     throw new Error("Failed to fetch user data or avatar");
@@ -42,32 +54,31 @@ app.use(cors());
 app.get("/api", (req, res) => {
   const endpoints = [
     { url: "/api", description: "Welcome message and list of endpoints" },
-    { url: "/api/pfp/:userId", description: "Get user avatar URL" },
-    { url: "/api/pfp/:userId/image", description: "Get user avatar image" },
-    { url: "/api/pfp/:userId/smallimage", description: "Get user small avatar image" },
-    { url: "/api/pfp/:userId/bigimage", description: "Get user big avatar image" },
-    { url: "/api/pfp/:userId/superbigimage", description: "Get user big avatar image" }
+    { url: "/api/:userId", description: "Get user avatar URL, username, display name, and ID" },
+    { url: "/api/:userId/image", description: "Get user avatar image" },
+    { url: "/api/:userId/smallimage", description: "Get user small avatar image" },
+    { url: "/api/:userId/bigimage", description: "Get user big avatar image" },
+    { url: "/api/:userId/superbigimage", description: "Get user big avatar image" }
   ];
   res.json({ endpoints });
 });
 
-
-app.get("/api/pfp/:userId", async (req, res) => {
+app.get("/api/:userId", async (req, res) => {
   const userId = req.params.userId;
   try {
-    const avatarUrl = await getPfp(userId);
-    res.json({ avatarUrl });
+    const userData = await getInfo(userId);
+    res.json(userData);
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: "Failed to fetch user data or avatar" });
   }
 });
 
-app.get("/api/pfp/:userId/image", async (req, res) => {
+app.get("/api/:userId/image", async (req, res) => {
   const userId = req.params.userId;
   const size = req.query.size || 512;
   try {
-    const avatarUrl = await getPfp(userId, size);
+    const avatarUrl = await getInfo(userId, size);
     res.redirect(avatarUrl);
   } catch (error) {
     console.error("Error:", error);
@@ -75,11 +86,11 @@ app.get("/api/pfp/:userId/image", async (req, res) => {
   }
 });
 
-app.get("/api/pfp/:userId/smallimage", async (req, res) => {
+app.get("/api/:userId/smallimage", async (req, res) => {
   const userId = req.params.userId;
   const size = req.query.size || 128;
   try {
-    const avatarUrl = await getPfp(userId, size);
+    const avatarUrl = await getInfo(userId, size);
     res.redirect(avatarUrl);
   } catch (error) {
     console.error("Error:", error);
@@ -87,11 +98,11 @@ app.get("/api/pfp/:userId/smallimage", async (req, res) => {
   }
 });
 
-app.get("/api/pfp/:userId/bigimage", async (req, res) => {
+app.get("/api/:userId/bigimage", async (req, res) => {
   const userId = req.params.userId;
   const size = req.query.size || 1024;
   try {
-    const avatarUrl = await getPfp(userId, size);
+    const avatarUrl = await getInfo(userId, size);
     res.redirect(avatarUrl);
   } catch (error) {
     console.error("Error:", error);
@@ -99,11 +110,11 @@ app.get("/api/pfp/:userId/bigimage", async (req, res) => {
   }
 });
 
-app.get("/api/pfp/:userId/superbigimage", async (req, res) => {
+app.get("/api/:userId/superbigimage", async (req, res) => {
   const userId = req.params.userId;
   const size = req.query.size || 4096;
   try {
-    const avatarUrl = await getPfp(userId, size);
+    const avatarUrl = await getInfo(userId, size);
     res.redirect(avatarUrl);
   } catch (error) {
     console.error("Error:", error);
