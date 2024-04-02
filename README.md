@@ -19,14 +19,17 @@ npm install cors express node-fetch dotenv
 
 ### Get Avatar URL
 
-- **Endpoint:** `/api/pfp/:userId`
+- **Endpoint:** `/api/:userId`
 - **Method:** GET
 - **Parameters:**
   - `userId` (required): Discord user ID for which avatar is to be fetched.
 - **Example:**
   ```json
   {
-    "avatarUrl": "https://cdn.discordapp.com/avatars/userId/avatar.png"
+  "id": "773952016036790272",
+  "username": "yellowgreg",
+  "display_name": null,
+  "avatarUrl": "https://cdn.discordapp.com/avatars/773952016036790272/cfe9480144d80fbf9625abf9e66a0b9b.png?size=128"
   }
   ```
 - **Response:** JSON object containing the avatar URL.
@@ -56,6 +59,15 @@ npm install cors express node-fetch dotenv
 - **Parameters:**
   - `userId` (required): Discord user ID for which avatar is to be fetched.
   - `size` (optional): Size of the avatar image. Default is 1024.
+- **Response:** Redirects to the URL of the avatar image with specified size.
+
+### Get Super Big Avatar Image
+
+- **Endpoint:** `/api/pfp/:userId/superbigimage`
+- **Method:** GET
+- **Parameters:**
+  - `userId` (required): Discord user ID for which avatar is to be fetched.
+  - `size` (optional): Size of the avatar image. Default is 4096.
 - **Response:** Redirects to the URL of the avatar image with specified size.
 
 ## Dependencies
