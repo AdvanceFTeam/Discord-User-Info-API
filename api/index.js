@@ -25,14 +25,14 @@ async function getUserData(userId) {
   }
 }
 
-async function getInfo(userId) {
+async function getPfp(userId, size = 128) {
   try {
     const userData = await getUserData(userId);
     let avatarUrl;
     if (userData.avatar.startsWith("a_")) {
-      avatarUrl = `https://cdn.discordapp.com/avatars/${userId}/${userData.avatar}.gif?size=128`;
+      avatarUrl = `https://cdn.discordapp.com/avatars/${userId}/${userData.avatar}.gif?size=${size}`;
     } else {
-      avatarUrl = `https://cdn.discordapp.com/avatars/${userId}/${userData.avatar}.png?size=128`;
+      avatarUrl = `https://cdn.discordapp.com/avatars/${userId}/${userData.avatar}.png?size=${size}`;
     }
 
     return {
@@ -54,7 +54,7 @@ app.use(cors());
 app.get("/api", (req, res) => {
   const endpoints = [
     { url: "/api", description: "Welcome message and list of endpoints" },
-    { url: "/api/:userId", description: "Get user avatar URL, username, display name, and ID" },
+    { url: "/api/:userId", description: "Get user Info" },
     { url: "/api/pfp/:userId/image", description: "Get user avatar image" },
     { url: "/api/pfp/:userId/smallimage", description: "Get user small avatar image" },
     { url: "/api/pfp/:userId/bigimage", description: "Get user big avatar image" },
@@ -63,11 +63,12 @@ app.get("/api", (req, res) => {
   res.json({ endpoints });
 });
 
+
 app.get("/api/:userId", async (req, res) => {
   const userId = req.params.userId;
   try {
-    const userData = await getInfo(userId);
-    res.json(userData);
+    const avatarUrl = await getPfp(userId);
+    res.json({ avatarUrl });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: "Failed to fetch user data or avatar" });
@@ -78,7 +79,7 @@ app.get("/api/pfp/:userId/image", async (req, res) => {
   const userId = req.params.userId;
   const size = req.query.size || 512;
   try {
-    const avatarUrl = await getInfo(userId, size);
+    const avatarUrl = await getPfp(userId, size);
     res.redirect(avatarUrl);
   } catch (error) {
     console.error("Error:", error);
@@ -90,7 +91,7 @@ app.get("/api/pfp/:userId/smallimage", async (req, res) => {
   const userId = req.params.userId;
   const size = req.query.size || 128;
   try {
-    const avatarUrl = await getInfo(userId, size);
+    const avatarUrl = await getPfp(userId, size);
     res.redirect(avatarUrl);
   } catch (error) {
     console.error("Error:", error);
@@ -102,7 +103,7 @@ app.get("/api/pfp/:userId/bigimage", async (req, res) => {
   const userId = req.params.userId;
   const size = req.query.size || 1024;
   try {
-    const avatarUrl = await getInfo(userId, size);
+    const avatarUrl = await getPfp(userId, size);
     res.redirect(avatarUrl);
   } catch (error) {
     console.error("Error:", error);
@@ -114,7 +115,7 @@ app.get("/api/pfp/:userId/superbigimage", async (req, res) => {
   const userId = req.params.userId;
   const size = req.query.size || 4096;
   try {
-    const avatarUrl = await getInfo(userId, size);
+    const avatarUrl = await getPfp(userId, size);
     res.redirect(avatarUrl);
   } catch (error) {
     console.error("Error:", error);
