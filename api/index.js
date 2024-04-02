@@ -25,7 +25,7 @@ async function getUserData(userId) {
   }
 }
 
-async function getPfp(userId, size = 128) {
+async function getPfp(userId, size) {
   try {
     const userData = await getUserData(userId);
     let avatarUrl;
@@ -54,11 +54,11 @@ app.use(cors());
 app.get("/api", (req, res) => {
   const endpoints = [
     { url: "/api", description: "Welcome message and list of endpoints" },
-    { url: "/api/:userId", description: "Get user Info" },
+    { url: "/api/:userId", description: "Get user avatar URL" },
     { url: "/api/pfp/:userId/image", description: "Get user avatar image" },
     { url: "/api/pfp/:userId/smallimage", description: "Get user small avatar image" },
     { url: "/api/pfp/:userId/bigimage", description: "Get user big avatar image" },
-    { url: "/api/pfp/:userId/superbigimage", description: "Get user big avatar image" }
+    { url: "/api/pfp/:userId/superbigimage", description: "Get user super big avatar image" }
   ];
   res.json({ endpoints });
 });
@@ -80,7 +80,7 @@ app.get("/api/pfp/:userId/image", async (req, res) => {
   const size = req.query.size || 512;
   try {
     const avatarUrl = await getPfp(userId, size);
-    res.redirect(avatarUrl);
+    res.redirect(avatarUrl.avatarUrl);
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: "Failed to fetch user data or avatar" });
@@ -92,7 +92,7 @@ app.get("/api/pfp/:userId/smallimage", async (req, res) => {
   const size = req.query.size || 128;
   try {
     const avatarUrl = await getPfp(userId, size);
-    res.redirect(avatarUrl);
+    res.redirect(avatarUrl.avatarUrl);
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: "Failed to fetch user data or avatar" });
@@ -104,7 +104,7 @@ app.get("/api/pfp/:userId/bigimage", async (req, res) => {
   const size = req.query.size || 1024;
   try {
     const avatarUrl = await getPfp(userId, size);
-    res.redirect(avatarUrl);
+    res.redirect(avatarUrl.avatarUrl);
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: "Failed to fetch user data or avatar" });
@@ -116,7 +116,7 @@ app.get("/api/pfp/:userId/superbigimage", async (req, res) => {
   const size = req.query.size || 4096;
   try {
     const avatarUrl = await getPfp(userId, size);
-    res.redirect(avatarUrl);
+    res.redirect(avatarUrl.avatarUrl);
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: "Failed to fetch user data or avatar" });
