@@ -25,20 +25,26 @@ async function getUserData(userId) {
   }
 }
 
-async function getPfp(userId, size) {
+async function getPfp(userId, size = 512) {
   try {
     const userData = await getUserData(userId);
     let avatarUrl;
-    if (userData.avatar.startsWith("a_")) {
+
+    // If the user or you has a custom avatar (starts with "a_"), it just return it
+    if (userData.avatar && userData.avatar.startsWith("a_")) {
       avatarUrl = `https://cdn.discordapp.com/avatars/${userId}/${userData.avatar}.gif?size=${size}`;
-    } else {
+    } else if (userData.avatar) {
       avatarUrl = `https://cdn.discordapp.com/avatars/${userId}/${userData.avatar}.png?size=${size}`;
+    } else {
+      // If no custom avatar, it will use Discord default avatar <--- this right here i had problems with, when theres no pfp of the user it doesnt show anything
+      const default_avatar = `https://cdn.discordapp.com/embed/avatars/${userData.discriminator % 5}.png`;
+      avatarUrl = default_avatar;
     }
 
     return {
       id: userData.id,
       username: userData.username,
-      display_name: userData.global_name,
+      display_name: userData.global_name || userData.username,  // Use global_name if available, but if that doesnt happen it fallsback to the username lol idk.
       avatarUrl: avatarUrl
     };
   } catch (error) {
@@ -46,6 +52,7 @@ async function getPfp(userId, size) {
     throw new Error("Failed to fetch user data or avatar");
   }
 }
+
 
 const app = express();
 
