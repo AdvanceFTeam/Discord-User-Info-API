@@ -30,22 +30,23 @@ async function getPfp(userId, size = 512) {
     const userData = await getUserData(userId);
     let avatarUrl;
 
-    // If the user or you has a custom avatar (starts with "a_"), it just return it
     if (userData.avatar && userData.avatar.startsWith("a_")) {
       avatarUrl = `https://cdn.discordapp.com/avatars/${userId}/${userData.avatar}.gif?size=${size}`;
-    } else if (userData.avatar) {
+    }
+    else if (userData.avatar) {
       avatarUrl = `https://cdn.discordapp.com/avatars/${userId}/${userData.avatar}.png?size=${size}`;
-    } else {
-      // If no custom avatar, it will use Discord default avatar <--- this right here i had problems with, when theres no pfp of the user it doesnt show anything
-      const default_avatar = `https://cdn.discordapp.com/embed/avatars/${userData.discriminator % 5}.png`;
-      avatarUrl = default_avatar;
+    }
+    // If no custom avatar(pfp), it uses the default Discord avatar
+    else {
+      const defaultAvatarIndex = parseInt(userData.discriminator, 10) % 5; //modulo of discriminator
+      avatarUrl = `https://cdn.discordapp.com/embed/avatars/${defaultAvatarIndex}.png`;
     }
 
     return {
       id: userData.id,
       username: userData.username,
-      display_name: userData.global_name || userData.username,  // Use global_name if available, but if that doesnt happen it fallsback to the username lol idk.
-      avatarUrl: avatarUrl
+      display_name: userData.global_name || userData.username,
+      avatarUrl: avatarUrl,
     };
   } catch (error) {
     console.error("Error:", error);
