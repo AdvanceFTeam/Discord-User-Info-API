@@ -2,80 +2,74 @@
 
 This Node.js application provides an API for fetching Discord user avatars(pfp).
 
-## Installation
-
-1. Clone this repository.
-2. Install dependencies by running `npm install`.
-```
-npm install cors express node-fetch dotenv
-```
-4. Create a `.env` file in the root directory and add your Discord bot token:
-   ```
-   DISCORD_BOT_TOKEN=your_discord_bot_token_here
-   ```
-5. Start the server by running `cd api` first then `node index`.
-
 ## Usage
 
-### Get Avatar URL
+### Endpoints Overview
 
-- **Endpoint:** `/api/:userId`
-- **Method:** GET
-- **Parameters:**
-  - `userId` (required): Discord user ID for which avatar is to be fetched.
-- **Example:**
+- **Welcome Endpoint:**  
+  **URL:** `/api`  
+  **Method:** GET  
+  **Description:** Returns a welcome message along with a list of available endpoints.
+
+- **Get Avatar Data (JSON):**  
+  **URL:** `/api/:userId`  
+  **Method:** GET  
+  **Description:** Returns the avatar URL, username, and display name for the specified Discord user.
+  
+  **Example Response:**
   ```json
   {
-  "id": "773952016036790272",
-  "username": "yellowgreg",
-  "display_name": null,
-  "avatarUrl": "https://cdn.discordapp.com/avatars/773952016036790272/cfe9480144d80fbf9625abf9e66a0b9b.png?size=128"
+    "id": "773952016036790272",
+    "username": "yellowgreg",
+    "display_name": "yellowgreg",
+    "avatarUrl": "https://cdn.discordapp.com/avatars/773952016036790272/cfe9480144d80fbf9625abf9e66a0b9b.png?size=128",
+    "discriminator": "1234"
   }
   ```
-- **Response:** JSON object containing the avatar URL.
 
-### Get Avatar Image
+- **Redirect to Avatar Image:**  
+  **URLs:**
+  - `/api/pfp/:userId/image` (default size: 512)
+  - `/api/pfp/:userId/smallimage` (default size: 128)
+  - `/api/pfp/:userId/bigimage` (default size: 1024)
+  - `/api/pfp/:userId/superbigimage` (default size: 4096)  
+  **Method:** GET  
+  **Description:** Redirects the client to the actual image URL of the user’s avatar. An optional `size` query parameter can override the default size.
 
-- **Endpoint:** `/api/pfp/:userId/image`
-- **Method:** GET
-- **Parameters:**
-  - `userId` (required): Discord user ID for which avatar is to be fetched.
-  - `size` (optional): Size of the avatar image. Default is 512.
-- **Response:** Redirects to the URL of the avatar image.
+- **Get Raw User Data:**  
+  **URL:** `/api/user/:userId/raw`  
+  **Method:** GET  
+  **Description:** Returns the full JSON data received from the Discord API.
 
-### Get Small Avatar Image
+- **Banner Endpoints:**  
+  **JSON Response:**  
+  **URL:** `/api/banner/:userId`  
+  **Method:** GET  
+  **Description:** Returns the banner URL (if available) in JSON format.
 
-- **Endpoint:** `/api/pfp/:userId/smallimage`
-- **Method:** GET
-- **Parameters:**
-  - `userId` (required): Discord user ID for which avatar is to be fetched.
-  - `size` (optional): Size of the avatar image. Default is 128.
-- **Response:** Redirects to the URL of the avatar image with specified size.
+  **Image Redirect:**  
+  **URL:** `/api/banner/:userId/image`  
+  **Method:** GET  
+  **Description:** Redirects to the banner image URL.
+  
+- **Health Check:**  
+  **URL:** `/ping`  
+  **Method:** GET  
+  **Description:** Returns "pong" to indicate that the server is running.
 
-### Get Big Avatar Image
-
-- **Endpoint:** `/api/pfp/:userId/bigimage`
-- **Method:** GET
-- **Parameters:**
-  - `userId` (required): Discord user ID for which avatar is to be fetched.
-  - `size` (optional): Size of the avatar image. Default is 1024.
-- **Response:** Redirects to the URL of the avatar image with specified size.
-
-### Get Super Big Avatar Image
-
-- **Endpoint:** `/api/pfp/:userId/superbigimage`
-- **Method:** GET
-- **Parameters:**
-  - `userId` (required): Discord user ID for which avatar is to be fetched.
-  - `size` (optional): Size of the avatar image. Default is 4096.
-- **Response:** Redirects to the URL of the avatar image with specified size.
+- **Fallback 404:**  
+  Any unknown endpoints will return a 404 JSON response:
+  ```json
+  { "error": "Endpoint not found" }
+  ```
 
 ## Dependencies
 
-- [express](https://www.npmjs.com/package/express): Fast, unopinionated, minimalist web framework for Node.js.
-- [cors](https://www.npmjs.com/package/cors): Middleware for enabling Cross-Origin Resource Sharing (CORS) in Express.js.
-- [dotenv](https://www.npmjs.com/package/dotenv): Loads environment variables from a .env file into process.env.
+- [express](https://www.npmjs.com/package/express): A minimal and flexible Node.js web framework.
+- [cors](https://www.npmjs.com/package/cors): Enables Cross-Origin Resource Sharing.
+- [dotenv](https://www.npmjs.com/package/dotenv): Loads environment variables from a `.env` file.
+- [node-fetch](https://www.npmjs.com/package/node-fetch): A light-weight module that brings `window.fetch` to Node.js.
+- [express-rate-limit](https://www.npmjs.com/package/express-rate-limit): Provides basic IP rate limiting middleware.
+- [node-cache](https://www.npmjs.com/package/node-cache): Simple in‑memory caching for Node.js.
 
-## License
 
-- Free to use
