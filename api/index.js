@@ -17,6 +17,12 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
+const fetchp = import("node-fetch").then(module => module.default);
+
+if (!process.env.DISCORD_BOT_TOKEN) {
+  throw new Error("Missing DISCORD_BOT_TOKEN environment variable");
+}
+
 // -------------------
 // Helper Functions
 // -------------------
@@ -26,7 +32,7 @@ async function getUserData(userId) {
   const cachedData = myCache.get(userId);
   if (cachedData) return cachedData;
 
-  const fetch = (await import("node-fetch")).default;
+  const fetch = await fetchp;
   const DISCORD_API_BASE_URL = "https://discord.com/api";
   const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 
@@ -38,14 +44,14 @@ async function getUserData(userId) {
     });
 
     if (!response.ok) {
-      throw new Error("Failed to fetch user data from Discord API");
+      throw new Error(`Failed to fetch user data from Discord API: ${response.status} ${response.statusText}`);
     }
 
     const userData = await response.json();
     myCache.set(userId, userData);
     return userData;
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Error in getUserData:", error);
     throw new Error("Failed to fetch user data");
   }
 }
@@ -55,12 +61,15 @@ async function getPfp(userId, size = 512) {
     const userData = await getUserData(userId);
     let avatarUrl;
 
-    if (userData.avatar && userData.avatar.startsWith("a_")) {
-      avatarUrl = `https://cdn.discordapp.com/avatars/${userId}/${userData.avatar}.gif?size=${size}`;
-    } else if (userData.avatar) {
-      avatarUrl = `https://cdn.discordapp.com/avatars/${userId}/${userData.avatar}.png?size=${size}`;
+    if (userData.avatar) {
+      if (userData.avatar.startsWith("a_")) {
+        avatarUrl = `https://cdn.discordapp.com/avatars/${userId}/${userData.avatar}.gif?size=${size}`;
+      } else {
+        avatarUrl = `https://cdn.discordapp.com/avatars/${userId}/${userData.avatar}.png?size=${size}`;
+      }
     } else {
-      const defaultAvatarIndex = parseInt(userData.discriminator, 10) % 5;
+      // If no custom avatar, choose one of the default avatars.
+      const defaultAvatarIndex = userData.discriminator ? parseInt(userData.discriminator, 10) % 5 : 0;
       avatarUrl = `https://cdn.discordapp.com/embed/avatars/${defaultAvatarIndex}.png`;
     }
 
@@ -68,16 +77,16 @@ async function getPfp(userId, size = 512) {
       id: userData.id,
       username: userData.username,
       display_name: userData.global_name || userData.username,
-      avatarUrl: avatarUrl,
+      avatarUrl,
       discriminator: userData.discriminator,
     };
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Error in getPfp:", error);
     throw new Error("Failed to fetch user data or avatar");
   }
 }
 
-async function Banners(userId, size = 512) {
+async function getBanner(userId, size = 512) {
   try {
     const userData = await getUserData(userId);
     if (userData.banner) {
@@ -89,13 +98,13 @@ async function Banners(userId, size = 512) {
       }
       return {
         id: userData.id,
-        bannerUrl: bannerUrl,
+        bannerUrl,
       };
     } else {
       throw new Error("User does not have a banner");
     }
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Error in getBanner:", error);
     throw new Error("Failed to fetch banner data");
   }
 }
@@ -115,111 +124,104 @@ app.get("/api", (req, res) => {
     { url: "/api/user/:userId/raw", description: "Get raw Discord user data (JSON)" },
     { url: "/api/banner/:userId", description: "Get user banner URL (JSON)" },
     { url: "/api/banner/:userId/image", description: "Redirect to user banner image" },
-    { url: "/ping", description: "Health check endpoint" },
   ];
   res.json({ endpoints });
 });
 
 app.get("/api/:userId", async (req, res) => {
-  const userId = req.params.userId;
+  const { userId } = req.params;
   try {
     const avatarData = await getPfp(userId);
     res.json(avatarData);
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Error in /api/:userId:", error);
     res.status(500).json({ error: "Failed to fetch user data or avatar" });
   }
 });
 
 app.get("/api/pfp/:userId/image", async (req, res) => {
-  const userId = req.params.userId;
+  const { userId } = req.params;
   const size = req.query.size || 512;
   try {
     const avatarData = await getPfp(userId, size);
     res.redirect(avatarData.avatarUrl);
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Error in /api/pfp/:userId/image:", error);
     res.status(500).json({ error: "Failed to fetch user data or avatar" });
   }
 });
 
 app.get("/api/pfp/:userId/smallimage", async (req, res) => {
-  const userId = req.params.userId;
+  const { userId } = req.params;
   const size = req.query.size || 128;
   try {
     const avatarData = await getPfp(userId, size);
     res.redirect(avatarData.avatarUrl);
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Error in /api/pfp/:userId/smallimage:", error);
     res.status(500).json({ error: "Failed to fetch user data or avatar" });
   }
 });
 
 app.get("/api/pfp/:userId/bigimage", async (req, res) => {
-  const userId = req.params.userId;
+  const { userId } = req.params;
   const size = req.query.size || 1024;
   try {
     const avatarData = await getPfp(userId, size);
     res.redirect(avatarData.avatarUrl);
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Error in /api/pfp/:userId/bigimage:", error);
     res.status(500).json({ error: "Failed to fetch user data or avatar" });
   }
 });
 
 app.get("/api/pfp/:userId/superbigimage", async (req, res) => {
-  const userId = req.params.userId;
+  const { userId } = req.params;
   const size = req.query.size || 4096;
   try {
     const avatarData = await getPfp(userId, size);
     res.redirect(avatarData.avatarUrl);
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Error in /api/pfp/:userId/superbigimage:", error);
     res.status(500).json({ error: "Failed to fetch user data or avatar" });
   }
 });
 
 app.get("/api/user/:userId/raw", async (req, res) => {
-  const userId = req.params.userId;
+  const { userId } = req.params;
   try {
     const userData = await getUserData(userId);
     res.json(userData);
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Error in /api/user/:userId/raw:", error);
     res.status(500).json({ error: "Failed to fetch raw user data" });
   }
 });
 
-// if they have nitro
 app.get("/api/banner/:userId", async (req, res) => {
-  const userId = req.params.userId;
+  const { userId } = req.params;
   const size = req.query.size || 512;
   try {
-    const bannerData = await Banners(userId, size);
+    const bannerData = await getBanner(userId, size);
     res.json(bannerData);
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Error in /api/banner/:userId:", error);
     res.status(404).json({ error: "Banner not available" });
   }
 });
 
 app.get("/api/banner/:userId/image", async (req, res) => {
-  const userId = req.params.userId;
+  const { userId } = req.params;
   const size = req.query.size || 512;
   try {
-    const bannerData = await Banners(userId, size);
+    const bannerData = await getBanner(userId, size);
     res.redirect(bannerData.bannerUrl);
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Error in /api/banner/:userId/image:", error);
     res.status(404).json({ error: "Banner not available" });
   }
 });
-
-// Simple health check endpoint
-app.get("/ping", (req, res) => {
-  res.send("pong");
-});
-
+// Fallback 404 endpoint
 app.use((req, res) => {
   res.status(404).json({ error: "Endpoint not found" });
 });
