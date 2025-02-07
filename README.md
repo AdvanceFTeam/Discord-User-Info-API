@@ -51,11 +51,6 @@ This Node.js application provides an API for fetching Discord user avatars(pfp).
   **URL:** `/api/banner/:userId/image`  
   **Method:** GET  
   **Description:** Redirects to the banner image URL.
-  
-- **Health Check:**  
-  **URL:** `/ping`  
-  **Method:** GET  
-  **Description:** Returns "pong" to indicate that the server is running.
 
 - **Fallback 404:**  
   Any unknown endpoints will return a 404 JSON response:
