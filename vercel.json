@@ -1,6 +1,18 @@
 {
-    "rewrites": [{ "source": "/api/(.*)", "destination": "/api" }],
-    "github": {
-      "silent": true
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/index.js",
+      "use": "@vercel/node"
     }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "api/index.js"
+    }
+  ],
+  "github": {
+    "silent": true
+  }
 }
