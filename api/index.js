@@ -28,7 +28,6 @@ if (!process.env.DISCORD_BOT_TOKEN) {
 // -------------------
 
 async function getUserData(userId) {
-  // Check cache first
   const cachedData = myCache.get(userId);
   if (cachedData) return cachedData;
 
@@ -68,7 +67,6 @@ async function getPfp(userId, size = 512) {
         avatarUrl = `https://cdn.discordapp.com/avatars/${userId}/${userData.avatar}.png?size=${size}`;
       }
     } else {
-      // If no custom avatar, choose one of the default avatars.
       const defaultAvatarIndex = userData.discriminator ? parseInt(userData.discriminator, 10) % 5 : 0;
       avatarUrl = `https://cdn.discordapp.com/embed/avatars/${defaultAvatarIndex}.png`;
     }
@@ -221,7 +219,6 @@ app.get("/api/banner/:userId/image", async (req, res) => {
     res.status(404).json({ error: "Banner not available" });
   }
 });
-// Fallback 404 endpoint
 app.use((req, res) => {
   res.status(404).json({ error: "Endpoint not found" });
 });
