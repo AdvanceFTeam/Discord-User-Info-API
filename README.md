@@ -1,6 +1,5 @@
 # Discord Avatar API
-
-This Node.js application provides an API for fetching Discord user avatars(pfp).
+Free to use PFP api 
 
 ## Usage
 
