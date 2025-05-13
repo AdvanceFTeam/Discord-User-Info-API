@@ -1,21 +1,23 @@
 # Discord Avatar API
-Free to use PFP api 
+
+Free to use PFP API
 
 ## Usage
 
 ### Endpoints Overview
 
-- **Welcome Endpoint:**  
-  **URL:** `/api`  
-  **Method:** GET  
-  **Description:** Returns a welcome message along with a list of available endpoints.
+ **Welcome Endpoint:**
+- **URL:** `/api`
+- **Method:** GET
+- **Description:** Returns a welcome message along with a list of available endpoints.
 
-- **Get Avatar Data (JSON):**  
-  **URL:** `/api/:userId`  
-  **Method:** GET  
-  **Description:** Returns the avatar URL, username, and display name for the specified Discord user.
-  
+ **Get Avatar Data (JSON):**
+- **URL:** `/api/:userId`
+- **Method:** GET
+- **Description:** Returns the avatar URL, username, and display name for the specified Discord user.
+
   **Example Response:**
+
   ```json
   {
     "id": "773952016036790272",
@@ -26,44 +28,43 @@ Free to use PFP api
   }
   ```
 
-- **Redirect to Avatar Image:**  
+ **Redirect to Avatar Image:**
   **URLs:**
+
   - `/api/pfp/:userId/image` (default size: 512)
   - `/api/pfp/:userId/smallimage` (default size: 128)
   - `/api/pfp/:userId/bigimage` (default size: 1024)
-  - `/api/pfp/:userId/superbigimage` (default size: 4096)  
-  **Method:** GET  
-  **Description:** Redirects the client to the actual image URL of the user’s avatar. An optional `size` query parameter can override the default size.
+  - `/api/pfp/:userId/superbigimage` (default size: 4096)
+    
+   - **Method:** GET
+   - **Description:** Redirects the client to the actual image URL of the user’s avatar. An optional `size` query parameter can override the default size.
 
-- **Get Raw User Data:**  
-  **URL:** `/api/user/:userId/raw`  
-  **Method:** GET  
-  **Description:** Returns the full JSON data received from the Discord API.
+ **New Avatar Size Endpoint:**
+- **URL:** `/api/pfp/:userId/:size`
+- **Method:** GET
+- **Description:** Returns the avatar image URL for the specified user and size (in pixels). You can replace `:size` with any valid image size (128, 512, 1024, etc.).
 
-- **Banner Endpoints:**  
-  **JSON Response:**  
-  **URL:** `/api/banner/:userId`  
-  **Method:** GET  
-  **Description:** Returns the banner URL (if available) in JSON format.
+  **Example URL:** `/api/pfp/773952016036790272/256`
 
-  **Image Redirect:**  
-  **URL:** `/api/banner/:userId/image`  
-  **Method:** GET  
-  **Description:** Redirects to the banner image URL.
+ **Get Raw User Data:**
+ - **URL:** `/api/user/:userId/raw`
+ - **Method:** GET
+ - **Description:** Returns the full JSON data received from the Discord API.
 
-- **Fallback 404:**  
+ **Banner Endpoints:**
+ - **JSON Response:**
+ - **URL:** `/api/banner/:userId`
+ - **Method:** GET
+ - **Description:** Returns the banner URL (if available) in JSON format.
+
+  **Image Redirect:**
+ - **URL:** `/api/banner/:userId/image`
+ - **Method:** GET
+ - **Description:** Redirects to the banner image URL.
+
+* **Fallback 404:**
   Any unknown endpoints will return a 404 JSON response:
+
   ```json
   { "error": "Endpoint not found" }
   ```
-
-## Dependencies
-
-- [express](https://www.npmjs.com/package/express): A minimal and flexible Node.js web framework.
-- [cors](https://www.npmjs.com/package/cors): Enables Cross-Origin Resource Sharing.
-- [dotenv](https://www.npmjs.com/package/dotenv): Loads environment variables from a `.env` file.
-- [node-fetch](https://www.npmjs.com/package/node-fetch): A light-weight module that brings `window.fetch` to Node.js.
-- [express-rate-limit](https://www.npmjs.com/package/express-rate-limit): Provides basic IP rate limiting middleware.
-- [node-cache](https://www.npmjs.com/package/node-cache): Simple in‑memory caching for Node.js.
-
-
