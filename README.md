@@ -62,12 +62,6 @@ Free to use PFP API
  - **Method:** GET
  - **Description:** Redirects to the banner image URL.
 
- **Fallback 404:**
-  Any unknown endpoints will return a 404 JSON response:
-
-  ```json
-  { "error": "Endpoint not found" }
-  ```
 
 # endpoint overview
 
