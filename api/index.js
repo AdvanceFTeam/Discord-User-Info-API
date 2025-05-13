@@ -1,209 +1,176 @@
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const NodeCache = require("node-cache");
+const fetch = (...args) => import("node-fetch").then(({ default: f }) => f(...args));
 require("dotenv").config();
 
 const app = express();
 app.use(cors());
-
-const myCache = new NodeCache({ stdTTL: 60 });
-
+app.use(helmet());
 app.set("trust proxy", 1);
+const PORT = process.env.PORT || 3000;
+const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
+const CACHE_TTL = parseInt(process.env.CACHE_TTL || "60", 10);
 
+if (!DISCORD_BOT_TOKEN) {
+  throw new Error("Missing DISCORD_BOT_TOKEN in .env");
+}
+
+const myCache = new NodeCache({ stdTTL: CACHE_TTL });
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
 });
 app.use(limiter);
 
-const fetchp = import("node-fetch").then(module => module.default);
+// -------------------
+// Helper
+// -------------------
+const isValidUserId = (id) => /^\d{17,20}$/.test(id);
 
-if (!process.env.DISCORD_BOT_TOKEN) {
-  throw new Error("Missing DISCORD_BOT_TOKEN environment variable");
+async function cachedFetch(key, fetchFn) {
+  const cached = myCache.get(key);
+  if (cached) return cached;
+  const result = await fetchFn();
+  myCache.set(key, result);
+  return result;
 }
-
-// -------------------
-// Helper Functions
-// -------------------
 
 async function getUserData(userId) {
-  const cachedData = myCache.get(userId);
-  if (cachedData) return cachedData;
-
-  const fetch = await fetchp;
-  const DISCORD_API_BASE_URL = "https://discord.com/api";
-  const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
-
-  try {
-    const response = await fetch(`${DISCORD_API_BASE_URL}/users/${userId}`, {
-      headers: {
-        Authorization: `Bot ${DISCORD_BOT_TOKEN}`,
-      },
+  return cachedFetch(userId, async () => {
+    const res = await fetch(`https://discord.com/api/users/${userId}`, {
+      headers: { Authorization: `Bot ${DISCORD_BOT_TOKEN}` },
     });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch user data from Discord API: ${response.status} ${response.statusText}`);
-    }
-
-    const userData = await response.json();
-    myCache.set(userId, userData);
-    return userData;
-  } catch (error) {
-    console.error("Error in getUserData:", error);
-    throw new Error("Failed to fetch user data");
-  }
+    if (!res.ok) throw new Error(`Discord API error: ${res.status}`);
+    return res.json();
+  });
 }
 
-async function getPfp(userId, size = 512) {
-  try {
-    const userData = await getUserData(userId);
-    let avatarUrl;
+async function getAvatar(userId, size = 512) {
+  const user = await getUserData(userId);
+  let url;
 
-    if (userData.avatar) {
-      if (userData.avatar.startsWith("a_")) {
-        avatarUrl = `https://cdn.discordapp.com/avatars/${userId}/${userData.avatar}.gif?size=${size}`;
-      } else {
-        avatarUrl = `https://cdn.discordapp.com/avatars/${userId}/${userData.avatar}.png?size=${size}`;
-      }
-    } else {
-      const defaultAvatarIndex = userData.discriminator ? parseInt(userData.discriminator, 10) % 5 : 0;
-      avatarUrl = `https://cdn.discordapp.com/embed/avatars/${defaultAvatarIndex}.png`;
-    }
-
-    return {
-      id: userData.id,
-      username: userData.username,
-      display_name: userData.global_name || userData.username,
-      avatarUrl,
-      discriminator: userData.discriminator,
-    };
-  } catch (error) {
-    console.error("Error in getPfp:", error);
-    throw new Error("Failed to fetch user data or avatar");
+  if (user.avatar) {
+    const ext = user.avatar.startsWith("a_") ? "gif" : "png";
+    url = `https://cdn.discordapp.com/avatars/${userId}/${user.avatar}.${ext}?size=${size}`;
+  } else {
+    const defaultIndex = user.discriminator
+      ? parseInt(user.discriminator) % 5
+      : 0;
+    url = `https://cdn.discordapp.com/embed/avatars/${defaultIndex}.png`;
   }
+
+  return {
+    id: user.id,
+    username: user.username,
+    display_name: user.global_name || user.username,
+    avatarUrl: url,
+    discriminator: user.discriminator,
+  };
 }
 
 async function getBanner(userId, size = 512) {
-  try {
-    const userData = await getUserData(userId);
-    if (userData.banner) {
-      let bannerUrl;
-      if (userData.banner.startsWith("a_")) {
-        bannerUrl = `https://cdn.discordapp.com/banners/${userId}/${userData.banner}.gif?size=${size}`;
-      } else {
-        bannerUrl = `https://cdn.discordapp.com/banners/${userId}/${userData.banner}.png?size=${size}`;
-      }
-      return {
-        id: userData.id,
-        bannerUrl,
-      };
-    } else {
-      throw new Error("User does not have a banner");
-    }
-  } catch (error) {
-    console.error("Error in getBanner:", error);
-    throw new Error("Failed to fetch banner data");
-  }
+  const user = await getUserData(userId);
+  if (!user.banner) throw new Error("User has no banner");
+  const ext = user.banner.startsWith("a_") ? "gif" : "png";
+  const url = `https://cdn.discordapp.com/banners/${userId}/${user.banner}.${ext}?size=${size}`;
+  return { id: user.id, bannerUrl: url };
 }
 
 // -------------------
-// API Endpoints
+// Routes
 // -------------------
-
 app.get("/api", (req, res) => {
-  const endpoints = [
-    { url: "/api", description: "Welcome message and list of endpoints" },
-    { url: "/api/:userId", description: "Get user avatar URL (JSON)" },
-    { url: "/api/pfp/:userId/image", description: "Redirect to user avatar image" },
-    { url: "/api/pfp/:userId/smallimage", description: "Redirect to small user avatar image" },
-    { url: "/api/pfp/:userId/bigimage", description: "Redirect to big user avatar image" },
-    { url: "/api/pfp/:userId/superbigimage", description: "Redirect to super big user avatar image" },
-    { url: "/api/user/:userId/raw", description: "Get raw Discord user data (JSON)" },
-    { url: "/api/banner/:userId", description: "Get user banner URL (JSON)" },
-    { url: "/api/banner/:userId/image", description: "Redirect to user banner image" },
-  ];
-  res.json({ endpoints });
+  res.json({
+    endpoints: [
+      { url: "/api/:userId", description: "Get avatar JSON info" },
+      { url: "/api/user/:userId/raw", description: "Get raw Discord user data" },
+      { url: "/api/pfp/:userId/image", description: "Redirect to avatar (512px)" },
+      { url: "/api/pfp/:userId/smallimage", description: "Redirect to avatar (128px)" },
+      { url: "/api/pfp/:userId/bigimage", description: "Redirect to avatar (1024px)" },
+      { url: "/api/pfp/:userId/superbigimage", description: "Redirect to avatar (4096px)" },
+      { url: "/api/pfp/:userId/:size", description: "Redirect to avatar with custom size (64–4096)" },
+      { url: "/api/banner/:userId", description: "Get banner URL JSON" },
+      { url: "/api/banner/:userId/image", description: "Redirect to banner image" },
+    ],
+  });
 });
 
 app.get("/api/:userId", async (req, res) => {
   const { userId } = req.params;
+  if (!isValidUserId(userId)) return res.status(400).json({ error: "Invalid user ID" });
   try {
-    const avatarData = await getPfp(userId);
-    res.json(avatarData);
-  } catch (error) {
-    console.error("Error in /api/:userId:", error);
-    res.status(500).json({ error: "Failed to fetch user data or avatar" });
+    const data = await getAvatar(userId);
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Could not fetch avatar" });
   }
 });
 
-app.get("/api/pfp/:userId/image", async (req, res) => {
-  const { userId } = req.params;
-  const size = req.query.size || 512;
-  try {
-    const avatarData = await getPfp(userId, size);
-    res.redirect(avatarData.avatarUrl);
-  } catch (error) {
-    console.error("Error in /api/pfp/:userId/image:", error);
-    res.status(500).json({ error: "Failed to fetch user data or avatar" });
-  }
+// size shortcuts
+const imageSizes = {
+  image: 512,
+  smallimage: 128,
+  bigimage: 1024,
+  superbigimage: 4096,
+};
+
+Object.entries(imageSizes).forEach(([endpoint, size]) => {
+  app.get(`/api/pfp/:userId/${endpoint}`, async (req, res) => {
+    const { userId } = req.params;
+    if (!isValidUserId(userId)) return res.status(400).json({ error: "Invalid user ID" });
+    try {
+      const data = await getAvatar(userId, size);
+      res.redirect(data.avatarUrl);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Could not fetch avatar" });
+    }
+  });
 });
 
-app.get("/api/pfp/:userId/smallimage", async (req, res) => {
-  const { userId } = req.params;
-  const size = req.query.size || 128;
-  try {
-    const avatarData = await getPfp(userId, size);
-    res.redirect(avatarData.avatarUrl);
-  } catch (error) {
-    console.error("Error in /api/pfp/:userId/smallimage:", error);
-    res.status(500).json({ error: "Failed to fetch user data or avatar" });
-  }
-});
+app.get("/api/pfp/:userId/:size", async (req, res) => {
+  const { userId, size } = req.params;
+  if (!isValidUserId(userId)) return res.status(400).json({ error: "Invalid user ID" });
 
-app.get("/api/pfp/:userId/bigimage", async (req, res) => {
-  const { userId } = req.params;
-  const size = req.query.size || 1024;
-  try {
-    const avatarData = await getPfp(userId, size);
-    res.redirect(avatarData.avatarUrl);
-  } catch (error) {
-    console.error("Error in /api/pfp/:userId/bigimage:", error);
-    res.status(500).json({ error: "Failed to fetch user data or avatar" });
-  }
-});
+  const numericSize = parseInt(size, 10);
+  const allowedSizes = [64, 128, 256, 512, 1024, 2048, 4096];
+  const finalSize = allowedSizes.includes(numericSize) ? numericSize : 512;
 
-app.get("/api/pfp/:userId/superbigimage", async (req, res) => {
-  const { userId } = req.params;
-  const size = req.query.size || 4096;
   try {
-    const avatarData = await getPfp(userId, size);
-    res.redirect(avatarData.avatarUrl);
-  } catch (error) {
-    console.error("Error in /api/pfp/:userId/superbigimage:", error);
-    res.status(500).json({ error: "Failed to fetch user data or avatar" });
+    const data = await getAvatar(userId, finalSize);
+    res.redirect(data.avatarUrl);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Could not fetch avatar" });
   }
 });
 
 app.get("/api/user/:userId/raw", async (req, res) => {
   const { userId } = req.params;
+  if (!isValidUserId(userId)) return res.status(400).json({ error: "Invalid user ID" });
   try {
-    const userData = await getUserData(userId);
-    res.json(userData);
-  } catch (error) {
-    console.error("Error in /api/user/:userId/raw:", error);
-    res.status(500).json({ error: "Failed to fetch raw user data" });
+    const data = await getUserData(userId);
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Could not fetch user data" });
   }
 });
 
 app.get("/api/banner/:userId", async (req, res) => {
   const { userId } = req.params;
   const size = req.query.size || 512;
+  if (!isValidUserId(userId)) return res.status(400).json({ error: "Invalid user ID" });
+
   try {
-    const bannerData = await getBanner(userId, size);
-    res.json(bannerData);
-  } catch (error) {
-    console.error("Error in /api/banner/:userId:", error);
+    const data = await getBanner(userId, size);
+    res.json(data);
+  } catch (err) {
+    console.error(err);
     res.status(404).json({ error: "Banner not available" });
   }
 });
@@ -211,21 +178,23 @@ app.get("/api/banner/:userId", async (req, res) => {
 app.get("/api/banner/:userId/image", async (req, res) => {
   const { userId } = req.params;
   const size = req.query.size || 512;
+  if (!isValidUserId(userId)) return res.status(400).json({ error: "Invalid user ID" });
+
   try {
-    const bannerData = await getBanner(userId, size);
-    res.redirect(bannerData.bannerUrl);
-  } catch (error) {
-    console.error("Error in /api/banner/:userId/image:", error);
+    const data = await getBanner(userId, size);
+    res.redirect(data.bannerUrl);
+  } catch (err) {
+    console.error(err);
     res.status(404).json({ error: "Banner not available" });
   }
 });
+
 app.use((req, res) => {
   res.status(404).json({ error: "Endpoint not found" });
 });
 
-const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`✅ Server running at http://localhost:${PORT}`);
 });
 
 module.exports = app;
