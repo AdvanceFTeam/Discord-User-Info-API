@@ -68,3 +68,18 @@ Free to use PFP API
   ```json
   { "error": "Endpoint not found" }
   ```
+
+# endpoint overview
+
+| Endpoint                         | Method | Description                                                                 |
+| -------------------------------- | ------ | --------------------------------------------------------------------------- |
+| `/api`                           | GET    | Welcome message + list of available endpoints                               |
+| `/api/:userId`                   | GET    | Returns avatar info (URL, username, display name, discriminator)            |
+| `/api/pfp/:userId/image`         | GET    | Redirects to avatar (512 px)                                                |
+| `/api/pfp/:userId/smallimage`    | GET    | Redirects to avatar (128 px)                                                |
+| `/api/pfp/:userId/bigimage`      | GET    | Redirects to avatar (1024 px)                                               |
+| `/api/pfp/:userId/superbigimage` | GET    | Redirects to avatar (4096 px)                                               |
+| `/api/pfp/:userId/:size`         | GET    | Redirects to avatar at custom size (64–4096 px; defaults to 512 if invalid) |
+| `/api/user/:userId/raw`          | GET    | Returns full raw Discord user JSON data                                     |
+| `/api/banner/:userId`            | GET    | Returns banner URL in JSON                                                  |
+| `/api/banner/:userId/image`      | GET    | Redirects to banner image                                                   |
