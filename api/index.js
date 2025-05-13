@@ -85,14 +85,14 @@ async function getBanner(userId, size = 512) {
 app.get("/api", (req, res) => {
   res.json({
     endpoints: [
-      { url: "/api/:userId", description: "Get avatar JSON info" },
-      { url: "/api/user/:userId/raw", description: "Get raw Discord user data" },
+      { url: "/api/:userId", description: "Get avatar JSON info (JSON)" },
+      { url: "/api/user/:userId/raw", description: "Get raw Discord user data (JSON)" },
       { url: "/api/pfp/:userId/image", description: "Redirect to avatar (512px)" },
       { url: "/api/pfp/:userId/smallimage", description: "Redirect to avatar (128px)" },
       { url: "/api/pfp/:userId/bigimage", description: "Redirect to avatar (1024px)" },
       { url: "/api/pfp/:userId/superbigimage", description: "Redirect to avatar (4096px)" },
       { url: "/api/pfp/:userId/:size", description: "Redirect to avatar with custom size (64–4096)" },
-      { url: "/api/banner/:userId", description: "Get banner URL JSON" },
+      { url: "/api/banner/:userId", description: "Get banner URL JSON for a user (JSON)" },
       { url: "/api/banner/:userId/image", description: "Redirect to banner image" },
     ],
   });
