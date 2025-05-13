@@ -23,8 +23,8 @@ Free to use PFP API
     "id": "773952016036790272",
     "username": "yellowgreg",
     "display_name": "yellowgreg",
-    "avatarUrl": "https://cdn.discordapp.com/avatars/773952016036790272/cfe9480144d80fbf9625abf9e66a0b9b.png?size=128",
-    "discriminator": "1234"
+    "avatarUrl": "https://cdn.discordapp.com/avatars/773952016036790272/b34cae8e284c60807c1b880f52b988d8.png?size=512",
+    "discriminator": "0"
   }
   ```
 
