@@ -44,7 +44,7 @@ Free to use PFP API
 - **Method:** GET
 - **Description:** Returns the avatar image URL for the specified user and size (in pixels). You can replace `:size` with any valid image size (128, 512, 1024, etc.).
 
-  **Example URL:** `/api/pfp/773952016036790272/256`
+  **Example URL:** `/api/pfp/773952016036790272/512`
 
  **Get Raw User Data:**
  - **URL:** `/api/user/:userId/raw`
