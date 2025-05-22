@@ -124,7 +124,12 @@ Object.entries(imageSizes).forEach(([endpoint, size]) => {
     if (!isValidUserId(userId)) return res.status(400).json({ error: "Invalid user ID" });
     try {
       const data = await getAvatar(userId, size);
-      res.redirect(data.avatarUrl);
+      const imageRes = await fetch(data.avatarUrl);
+      const contentType = imageRes.headers.get("content-type");
+      res.set("Content-Type", contentType);
+      res.set("Access-Control-Allow-Origin", "*");
+      res.set("Cross-Origin-Resource-Policy", "cross-origin");
+      imageRes.body.pipe(res);
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: "Could not fetch avatar" });
@@ -142,7 +147,12 @@ app.get("/api/pfp/:userId/:size", async (req, res) => {
 
   try {
     const data = await getAvatar(userId, finalSize);
-    res.redirect(data.avatarUrl);
+    const imageRes = await fetch(data.avatarUrl);
+    const contentType = imageRes.headers.get("content-type");
+    res.set("Content-Type", contentType);
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Cross-Origin-Resource-Policy", "cross-origin");
+    imageRes.body.pipe(res);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Could not fetch avatar" });
@@ -182,7 +192,12 @@ app.get("/api/banner/:userId/image", async (req, res) => {
 
   try {
     const data = await getBanner(userId, size);
-    res.redirect(data.bannerUrl);
+    const imageRes = await fetch(data.bannerUrl);
+    const contentType = imageRes.headers.get("content-type");
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Cross-Origin-Resource-Policy", "cross-origin");
+    res.set("Content-Type", contentType);
+    imageRes.body.pipe(res);
   } catch (err) {
     console.error(err);
     res.status(404).json({ error: "Banner not available" });
