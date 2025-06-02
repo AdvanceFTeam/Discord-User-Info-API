@@ -161,10 +161,41 @@ app.get("/api/pfp/:userId/:size", async (req, res) => {
 
 app.get("/api/user/:userId/raw", async (req, res) => {
   const { userId } = req.params;
-  if (!isValidUserId(userId)) return res.status(400).json({ error: "Invalid user ID" });
+  if (!isValidUserId(userId)) {
+    return res.status(400).json({ error: "Invalid user ID" });
+  }
+
   try {
-    const data = await getUserData(userId);
-    res.json(data);
+    const user = await getUserData(userId);
+
+    const avatarExt = user.avatar?.startsWith("a_") ? "gif" : "png";
+    const avatarUrl = user.avatar
+      ? `https://cdn.discordapp.com/avatars/${userId}/${user.avatar}.${avatarExt}?size=512`
+      : `https://cdn.discordapp.com/embed/avatars/${user.discriminator ? parseInt(user.discriminator) % 5 : 0}.png`;
+
+    const bannerExt = user.banner?.startsWith("a_") ? "gif" : "png";
+    const bannerUrl = user.banner
+      ? `https://cdn.discordapp.com/banners/${userId}/${user.banner}.${bannerExt}?size=512`
+      : null;
+
+    res.json({
+      id: user.id,
+      username: user.username,
+      display_name: user.global_name || user.username,
+      avatar: user.avatar,
+      avatarUrl,
+      discriminator: user.discriminator,
+      public_flags: user.public_flags,
+      flags: user.flags,
+      accent_color: user.accent_color,
+      banner: user.banner,
+      banner_color: user.banner_color,
+      bannerUrl,
+      avatar_decoration_data: user.avatar_decoration_data,
+      collectibles: user.collectibles,
+      clan: user.clan,
+      primary_guild: user.primary_guild
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Could not fetch user data" });
