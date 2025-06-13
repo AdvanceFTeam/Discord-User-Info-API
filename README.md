@@ -126,3 +126,9 @@ Free to use PFP API
 | `/api/banner/:userId/image`      | GET    | Redirects to banner image                                                   |
 | `/api/github/:username`          | GET    | Returns GitHub user info (JSON)                                             |
 | `/api/github/:username/pfp`      | GET    | Redirects to GitHub avatar image                                            |
+
+
+DOC (Ignore):
+- https://api.github.com/
+- https://docs.github.com/en/rest?apiVersion=2022-11-28
+- https://discord.com/developers/docs/intro
