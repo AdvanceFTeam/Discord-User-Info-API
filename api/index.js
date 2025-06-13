@@ -125,7 +125,10 @@ app.get("/api/:userId", async (req, res) => {
   if (!isValidUserId(userId)) return res.status(400).json({ error: "Invalid user ID" });
   try {
     const data = await getAvatar(userId);
-    res.json(data);
+    res.json({
+      profileUrl: `https://discord.com/users/${userId}`,
+      ...data,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Could not fetch avatar" });
@@ -200,6 +203,7 @@ app.get("/api/user/:userId/raw", async (req, res) => {
       : null;
 
     res.json({
+      profileUrl: `https://discord.com/users/${userId}`,
       id: user.id,
       username: user.username,
       display_name: user.global_name || user.username,
@@ -215,7 +219,7 @@ app.get("/api/user/:userId/raw", async (req, res) => {
       avatar_decoration_data: user.avatar_decoration_data,
       collectibles: user.collectibles,
       clan: user.clan,
-      primary_guild: user.primary_guild
+      primary_guild: user.primary_guild,
     });
   } catch (err) {
     console.error(err);
