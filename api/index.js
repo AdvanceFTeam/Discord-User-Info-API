@@ -10,6 +10,7 @@ const app = express();
 app.use(cors());
 app.use(helmet());
 app.set("trust proxy", 1);
+
 const PORT = process.env.PORT || 3000;
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN;
 const CACHE_TTL = parseInt(process.env.CACHE_TTL || "60", 10);
@@ -25,9 +26,6 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// -------------------
-// Helper
-// -------------------
 const isValidUserId = (id) => /^\d{17,20}$/.test(id);
 
 async function cachedFetch(key, fetchFn) {
@@ -38,6 +36,9 @@ async function cachedFetch(key, fetchFn) {
   return result;
 }
 
+// -------------------
+// discord functon
+// -------------------
 async function getUserData(userId) {
   return cachedFetch(userId, async () => {
     const res = await fetch(`https://discord.com/api/users/${userId}`, {
@@ -80,24 +81,45 @@ async function getBanner(userId, size = 512) {
 }
 
 // -------------------
+// github funciton 
+// -------------------
+async function _GithubUser(username) {
+  return cachedFetch(`github_${username}`, async () => {
+    const res = await fetch(`https://api.github.com/users/${username}`, {
+      headers: { 'User-Agent': 'Node.js Server' }
+    });
+    if (!res.ok) throw new Error(`GitHub API error: ${res.status}`);
+    return res.json();
+  });
+}
+
+// -------------------
 // Routes
 // -------------------
 app.get("/api", (req, res) => {
   res.json({
     endpoints: [
-      { url: "/api/:userId", description: "Get avatar JSON info (JSON)" },
-      { url: "/api/user/:userId/raw", description: "Get raw Discord user data (JSON)" },
-      { url: "/api/pfp/:userId/image", description: "Redirect to avatar (512px)" },
-      { url: "/api/pfp/:userId/smallimage", description: "Redirect to avatar (128px)" },
-      { url: "/api/pfp/:userId/bigimage", description: "Redirect to avatar (1024px)" },
-      { url: "/api/pfp/:userId/superbigimage", description: "Redirect to avatar (4096px)" },
-      { url: "/api/pfp/:userId/:size", description: "Redirect to avatar with custom size (64–4096)" },
-      { url: "/api/banner/:userId", description: "Get banner URL JSON for a user (JSON)" },
-      { url: "/api/banner/:userId/image", description: "Redirect to banner image" },
-    ],
+      // Discord
+      { url: "/api/:userId", description: "Get Discord avatar JSON info" },
+      { url: "/api/user/:userId/raw", description: "Get raw Discord user data with full public fields" },
+      { url: "/api/pfp/:userId/image", description: "Discord avatar 512px" },
+      { url: "/api/pfp/:userId/smallimage", description: "Discord avatar 128px" },
+      { url: "/api/pfp/:userId/bigimage", description: "Discord avatar 1024px" },
+      { url: "/api/pfp/:userId/superbigimage", description: "Discord avatar 4096px" },
+      { url: "/api/pfp/:userId/:size", description: "Discord avatar custom size" },
+      { url: "/api/banner/:userId", description: "Discord banner URL JSON" },
+      { url: "/api/banner/:userId/image", description: "Discord banner image" },
+
+      // GitHub
+      { url: "/api/github/:username", description: "Get GitHub user JSON info" },
+      { url: "/api/github/:username/pfp", description: "Redirect to GitHub avatar image" }
+    ]
   });
 });
 
+// -------------------
+// Discord route
+// -------------------
 app.get("/api/:userId", async (req, res) => {
   const { userId } = req.params;
   if (!isValidUserId(userId)) return res.status(400).json({ error: "Invalid user ID" });
@@ -110,7 +132,6 @@ app.get("/api/:userId", async (req, res) => {
   }
 });
 
-// size shortcuts
 const imageSizes = {
   image: 512,
   smallimage: 128,
@@ -232,6 +253,49 @@ app.get("/api/banner/:userId/image", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(404).json({ error: "Banner not available" });
+  }
+});
+
+// -------------------
+// GitHub route
+// -------------------
+app.get("/api/github/:username", async (req, res) => {
+  const { username } = req.params;
+  try {
+    const user = await _GithubUser(username);
+    res.json({
+      id: user.id,
+      username: user.login,
+      display_name: user.name || user.login,
+      avatarUrl: user.avatar_url,
+      profileUrl: user.html_url,
+      bio: user.bio,
+      public_repos: user.public_repos,
+      followers: user.followers,
+      following: user.following,
+      location: user.location,
+      company: user.company,
+      blog: user.blog
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Could not fetch GitHub user data" });
+  }
+});
+
+app.get("/api/github/:username/pfp", async (req, res) => {
+  const { username } = req.params;
+  try {
+    const user = await _GithubUser(username);
+    const imageRes = await fetch(user.avatar_url);
+    const contentType = imageRes.headers.get("content-type");
+    res.set("Content-Type", contentType);
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Cross-Origin-Resource-Policy", "cross-origin");
+    imageRes.body.pipe(res);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Could not fetch GitHub avatar" });
   }
 });
 
