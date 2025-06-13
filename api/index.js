@@ -86,7 +86,10 @@ async function getBanner(userId, size = 512) {
 async function _GithubUser(username) {
   return cachedFetch(`github_${username}`, async () => {
     const res = await fetch(`https://api.github.com/users/${username}`, {
-      headers: { 'User-Agent': 'Node.js Server' }
+      headers: { 
+        'User-Agent': 'Node.js Server',
+        'Authorization': `token ${process.env.GITHUB_TOKEN}` 
+        }
     });
     if (!res.ok) throw new Error(`GitHub API error: ${res.status}`);
     return res.json();
