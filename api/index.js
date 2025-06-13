@@ -100,15 +100,15 @@ app.get("/api", (req, res) => {
   res.json({
     endpoints: [
       // Discord
-      { url: "/api/:userId", description: "Get Discord avatar JSON info" },
-      { url: "/api/user/:userId/raw", description: "Get raw Discord user data with full public fields" },
-      { url: "/api/pfp/:userId/image", description: "Discord avatar 512px" },
-      { url: "/api/pfp/:userId/smallimage", description: "Discord avatar 128px" },
-      { url: "/api/pfp/:userId/bigimage", description: "Discord avatar 1024px" },
-      { url: "/api/pfp/:userId/superbigimage", description: "Discord avatar 4096px" },
-      { url: "/api/pfp/:userId/:size", description: "Discord avatar custom size" },
-      { url: "/api/banner/:userId", description: "Discord banner URL JSON" },
-      { url: "/api/banner/:userId/image", description: "Discord banner image" },
+      { url: "/api/:userId", description: "Get avatar JSON info (JSON)" },
+      { url: "/api/user/:userId/raw", description: "Get raw Discord user data (JSON)" },
+      { url: "/api/pfp/:userId/image", description: "Redirect to avatar (512px)" },
+      { url: "/api/pfp/:userId/smallimage", description: "Redirect to avatar (128px)" },
+      { url: "/api/pfp/:userId/bigimage", description: "Redirect to avatar (1024px)" },
+      { url: "/api/pfp/:userId/superbigimage", description: "Redirect to avatar (4096px)" },
+      { url: "/api/pfp/:userId/:size", description: "Redirect to avatar with custom size (64–4096)" },
+      { url: "/api/banner/:userId", description: "Get banner URL JSON for a user (JSON)" },
+      { url: "/api/banner/:userId/image", description: "Redirect to banner image" },
 
       // GitHub
       { url: "/api/github/:username", description: "Get GitHub user JSON info" },
